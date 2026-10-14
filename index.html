@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Pontuação de Títulos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#2563eb',
+                            600: '#1d4ed8',
+                            700: '#1e40af',
+                            800: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; color: black; font-size: 12pt; }
+            .card-box { border: 1px solid #ccc !important; box-shadow: none !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-gradient-to-r from-brand-800 via-brand-700 to-indigo-900 text-white shadow-lg no-print">
+        <div class="max-w-6xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <span class="inline-block px-3 py-1 bg-brand-500/30 text-blue-100 rounded-full text-xs font-semibold uppercase tracking-wider mb-2 border border-brand-500/40">
+                        Processo Seletivo & Concursos
+                    </span>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Calculadora de Titulação e Experiência</h1>
+                    <p class="text-brand-100 text-sm sm:text-base mt-1">Calcule a pontuação dos seus títulos e comprovação profissional de acordo com o edital.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="resetForm()" class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm font-medium border border-white/20 backdrop-blur-sm">
+                        <i class="fa-solid fa-rotate-left">font-bold</i>
+                        <span>Limpar Dados</span>
+                    </button>
+                    <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-all text-sm font-semibold shadow-md">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Imprimir / PDF</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full flex-grow">
+        
+        <!-- Header exclusivo para impressão -->
+        <div class="print-only mb-6 border-b pb-4">
+            <h1 class="text-2xl font-bold text-slate-900">Relatório de Pontuação de Títulos</h1>
+            <p class="text-sm text-slate-600">Comprovante de Pré-Análise de Títulos e Experiência Profissional</p>
+            <p class="text-xs text-slate-500 mt-1">Gerado em: <span id="print-date"></span></p>
+        </div>
+
+        <!-- Dashboard / Placar Geral (Sticky Top em telas maiores) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <!-- Card 1: Titulação -->
+            <div class="card-box bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cat. 1 - Titulação</span>
+                        <h3 class="text-lg font-bold text-slate-800">Acadêmica</h3>
+                    </div>
+                    <span class="p-2 bg-blue-50 text-brand-600 rounded-lg">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <span id="score-cat1" class="text-3xl font-extrabold text-brand-600">0</span>
+                    <span class="text-sm font-medium text-slate-500">/ 60 pts máx</span>
+                </div>
+                <!-- Barra de Progresso Cat 1 -->
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div id="bar-cat1" class="bg-brand-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Card 2: Experiência -->
+            <div class="card-box bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cat. 2 - Experiência</span>
+                        <h3 class="text-lg font-bold text-slate-800">Profissional / Cursos</h3>
+                    </div>
+                    <span class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                        <i class="fa-solid fa-briefcase text-xl"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <span id="score-cat2" class="text-3xl font-extrabold text-indigo-600">0</span>
+                    <span class="text-sm font-medium text-slate-500">/ 150 pts máx</span>
+                </div>
+                <!-- Barra de Progresso Cat 2 -->
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div id="bar-cat2" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Card 3: Pontuação Total -->
+            <div class="card-box bg-gradient-to-br from-slate-900 to-brand-900 text-white p-5 rounded-xl shadow-md relative overflow-hidden">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-xs font-semibold text-brand-200 uppercase tracking-wider">Pontuação Geral</span>
+                        <h3 class="text-lg font-bold text-white">Pontuação Total</h3>
+                    </div>
+                    <span class="p-2 bg-white/10 text-amber-400 rounded-lg backdrop-blur-sm">
+                        <i class="fa-solid fa-award text-xl"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <span id="score-total" class="text-3xl font-extrabold text-amber-400">0</span>
+                    <span class="text-sm font-medium text-slate-300">/ 210 pts máx</span>
+                </div>
+                <!-- Barra de Progresso Total -->
+                <div class="w-full bg-white/20 rounded-full h-2.5 overflow-hidden">
+                    <div id="bar-total" class="bg-amber-400 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <form id="calc-form" onsubmit="event.preventDefault();" class="space-y-8">
+            
+            <!-- SEÇÃO 1: TITULAÇÃO ACADÊMICA -->
+            <section class="card-box bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-sm">1</div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Titulação Acadêmica</h2>
+                            <p class="text-xs text-slate-500">Limite máximo desta categoria: <strong class="text-brand-600">60 pontos</strong></p>
+                        </div>
+                    </div>
+                    <span id="badge-cat1" class="text-xs font-semibold bg-brand-100 text-brand-700 px-3 py-1 rounded-full">0 / 60 pts</span>
+                </div>
+
+                <div class="p-6 space-y-4">
+
+                    <!-- Item 1: Graduação -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item1" class="font-semibold text-slate-800 block">Item 1: Graduação na área do curso</label>
+                            <span class="text-xs text-slate-500">Valor: 5 pontos por graduação apresentada.</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <label class="text-xs text-slate-500 font-medium">Qtd:</label>
+                            <input type="number" id="item1" min="0" max="12" value="0" oninput="calculateScore()" class="w-20 px-3 py-2 border border-slate-300 rounded-lg text-center font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            <div class="w-16 text-right font-bold text-brand-600 text-sm" id="pts-item1">0 pts</div>
+                        </div>
+                    </div>
+
+                    <!-- Item 2: Especialização Educação -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item2" class="font-semibold text-slate-800 block">Item 2: Especialização na área de Educação</label>
+                            <span class="text-xs text-slate-500">Valor: 10 pontos (Máximo de 1 curso).</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <input type="checkbox" id="item2" onchange="calculateScore()" class="w-5 h-5 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer">
+                            <span class="text-sm font-medium text-slate-600">Possuo</span>
+                            <div class="w-16 text-right font-bold text-brand-600 text-sm" id="pts-item2">0 pts</div>
+                        </div>
+                    </div>
+
+                    <!-- Item 3: Especialização EaD -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item3" class="font-semibold text-slate-800 block">Item 3: Especialização na área de Educação a Distância</label>
+                            <span class="text-xs text-slate-500">Valor: 10 pontos (Máximo de 1 curso).</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <input type="checkbox" id="item3" onchange="calculateScore()" class="w-5 h-5 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer">
+                            <span class="text-sm font-medium text-slate-600">Possuo</span>
+                            <div class="w-16 text-right font-bold text-brand-600 text-sm" id="pts-item3">0 pts</div>
+                        </div>
+                    </div>
+
+                    <!-- Item 4: Mestrado -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item4" class="font-semibold text-slate-800 block">Item 4: Mestrado na área de Educação</label>
+                            <span class="text-xs text-slate-500">Valor: 15 pontos (Máximo de 1 curso).</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <input type="checkbox" id="item4" onchange="calculateScore()" class="w-5 h-5 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer">
+                            <span class="text-sm font-medium text-slate-600">Possuo</span>
+                            <div class="w-16 text-right font-bold text-brand-600 text-sm" id="pts-item4">0 pts</div>
+                        </div>
+                    </div>
+
+                    <!-- Item 5: Doutorado -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item5" class="font-semibold text-slate-800 block">Item 5: Doutorado na área de Educação</label>
+                            <span class="text-xs text-slate-500">Valor: 20 pontos (Máximo de 1 curso).</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <input type="checkbox" id="item5" onchange="calculateScore()" class="w-5 h-5 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer">
+                            <span class="text-sm font-medium text-slate-600">Possuo</span>
+                            <div class="w-16 text-right font-bold text-brand-600 text-sm" id="pts-item5">0 pts</div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- SEÇÃO 2: EXPERIÊNCIA PROFISSIONAL E CAPACITAÇÃO -->
+            <section class="card-box bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">2</div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Experiência Profissional e Capacitação</h2>
+                            <p class="text-xs text-slate-500">Limite máximo desta categoria: <strong class="text-indigo-600">150 pontos</strong></p>
+                        </div>
+                    </div>
+                    <span id="badge-cat2" class="text-xs font-semibold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">0 / 150 pts</span>
+                </div>
+
+                <div class="p-6 space-y-4">
+
+                    <!-- Item 6: Professor Presencial -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item6" class="font-semibold text-slate-800 block">Item 6: Experiência como professor no ensino presencial</label>
+                            <span class="text-xs text-slate-500">5 pontos por semestre (máximo de 3 anos = 6 semestres = até 30 pts).</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <select id="item6" onchange="calculateScore()" class="px-3 py-2 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <option value="0">0 semestres</option>
+                                <option value="1">1 semestre (0.5 ano)</option>
+                                <option value="2">2 semestres (1 ano)</option>
+                                <option value="3">3 semestres (1.5 anos)</option>
+                                <option value="4">4 semestres (2 anos)</option>
+                                <option value="5">5 semestres (2.5 anos)</option>
+                                <option value="6">6 semestres (3 anos)</option>
+                            </select>
+                            <div class="w-16 text-right font-bold text-indigo-600 text-sm" id="pts-item6">0 pts</div>
+                        </div>
+                    </div>
+
+                    <!-- Item 7: Professor EaD -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item7" class="font-semibold text-slate-800 block">Item 7: Experiência como professor no ensino a distância</label>
+                            <span class="text-xs text-slate-500">5 pontos por semestre (máximo de 3 anos = 6 semestres = até 30 pts).</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <select id="item7" onchange="calculateScore()" class="px-3 py-2 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <option value="0">0 semestres</option>
+                                <option value="1">1 semestre (0.5 ano)</option>
+                                <option value="2">2 semestres (1 ano)</option>
+                                <option value="3">3 semestres (1.5 anos)</option>
+                                <option value="4">4 semestres (2 anos)</option>
+                                <option value="5">5 semestres (2.5 anos)</option>
+                                <option value="6">6 semestres (3 anos)</option>
+                            </select>
+                            <div class="w-16 text-right font-bold text-indigo-600 text-sm" id="pts-item7">0 pts</div>
+                        </div>
+                    </div>
+
+                    <!-- Item 8: Tutor/Mediador EaD -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item8" class="font-semibold text-slate-800 block">Item 8: Tutor/mediador de graduação em EaD</label>
+                            <span class="text-xs text-slate-500">5 pontos por semestre (máximo de 3 anos = 6 semestres = até 30 pts).</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <select id="item8" onchange="calculateScore()" class="px-3 py-2 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <option value="0">0 semestres</option>
+                                <option value="1">1 semestre (0.5 ano)</option>
+                                <option value="2">2 semestres (1 ano)</option>
+                                <option value="3">3 semestres (1.5 anos)</option>
+                                <option value="4">4 semestres (2 anos)</option>
+                                <option value="5">5 semestres (2.5 anos)</option>
+                                <option value="6">6 semestres (3 anos)</option>
+                            </select>
+                            <div class="w-16 text-right font-bold text-indigo-600 text-sm" id="pts-item8">0 pts</div>
+                        </div>
+                    </div>
+
+                    <!-- Item 9: Capacitação na Área do Curso -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item9" class="font-semibold text-slate-800 block">Item 9: Cursos de Capacitação na área do curso (≥ 40h)</label>
+                            <span class="text-xs text-slate-500">10 pontos por curso (máximo de 3 cursos = até 30 pts).</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <select id="item9" onchange="calculateScore()" class="px-3 py-2 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <option value="0">0 cursos</option>
+                                <option value="1">1 curso</option>
+                                <option value="2">2 cursos</option>
+                                <option value="3">3 cursos</option>
+                            </select>
+                            <div class="w-16 text-right font-bold text-indigo-600 text-sm" id="pts-item9">0 pts</div>
+                        </div>
+                    </div>
+
+                    <!-- Item 10: Capacitação em EaD -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                        <div class="flex-1">
+                            <label for="item10" class="font-semibold text-slate-800 block">Item 10: Cursos de Capacitação na área de EaD (≥ 40h)</label>
+                            <span class="text-xs text-slate-500">10 pontos por curso (máximo de 3 cursos = até 30 pts).</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <select id="item10" onchange="calculateScore()" class="px-3 py-2 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <option value="0">0 cursos</option>
+                                <option value="1">1 curso</option>
+                                <option value="2">2 cursos</option>
+                                <option value="3">3 cursos</option>
+                            </select>
+                            <div class="w-16 text-right font-bold text-indigo-600 text-sm" id="pts-item10">0 pts</div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </form>
+
+        <!-- Quadro de Observações para impressão -->
+        <div class="print-only mt-8 border-t pt-4">
+            <h4 class="font-bold text-sm mb-2">Assinatura do Candidato:</h4>
+            <div class="border-b border-slate-400 w-2/3 h-12 mb-2"></div>
+            <p class="text-xs text-slate-500">Declaro que as informações prestadas neste documento são verdadeiras e correspondem aos comprovantes em anexo.</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 no-print">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>Calculadora de Pontuação de Títulos e Experiência Profissional</p>
+            <p class="mt-1">Desenvolvido com foco em precisão, transparência e facilidade de uso.</p>
+        </div>
+    </footer>
+
+    <!-- Lógica JavaScript -->
+    <script>
+        // Limites do edital
+        const MAX_CAT1 = 60;
+        const MAX_CAT2 = 150;
+        const MAX_TOTAL = 210;
+
+        function calculateScore() {
+            // CATEGORIA 1: Titulação Acadêmica
+            const item1Qtd = parseInt(document.getElementById('item1').value) || 0;
+            const pts1 = item1Qtd * 5;
+
+            const pts2 = document.getElementById('item2').checked ? 10 : 0;
+            const pts3 = document.getElementById('item3').checked ? 10 : 0;
+            const pts4 = document.getElementById('item4').checked ? 15 : 0;
+            const pts5 = document.getElementById('item5').checked ? 20 : 0;
+
+            // Atualiza exibição por item (Cat 1)
+            document.getElementById('pts-item1').innerText = `${pts1} pts`;
+            document.getElementById('pts-item2').innerText = `${pts2} pts`;
+            document.getElementById('pts-item3').innerText = `${pts3} pts`;
+            document.getElementById('pts-item4').innerText = `${pts4} pts`;
+            document.getElementById('pts-item5').innerText = `${pts5} pts`;
+
+            const rawCat1 = pts1 + pts2 + pts3 + pts4 + pts5;
+            // Aplica o teto da Categoria 1 (60 pontos)
+            const finalCat1 = Math.min(rawCat1, MAX_CAT1);
+
+            // CATEGORIA 2: Experiência Profissional e Capacitação
+            const pts6 = (parseInt(document.getElementById('item6').value) || 0) * 5;
+            const pts7 = (parseInt(document.getElementById('item7').value) || 0) * 5;
+            const pts8 = (parseInt(document.getElementById('item8').value) || 0) * 5;
+            const pts9 = (parseInt(document.getElementById('item9').value) || 0) * 10;
+            const pts10 = (parseInt(document.getElementById('item10').value) || 0) * 10;
+
+            // Atualiza exibição por item (Cat 2)
+            document.getElementById('pts-item6').innerText = `${pts6} pts`;
+            document.getElementById('pts-item7').innerText = `${pts7} pts`;
+            document.getElementById('pts-item8').innerText = `${pts8} pts`;
+            document.getElementById('pts-item9').innerText = `${pts9} pts`;
+            document.getElementById('pts-item10').innerText = `${pts10} pts`;
+
+            const rawCat2 = pts6 + pts7 + pts8 + pts9 + pts10;
+            // Aplica o teto da Categoria 2 (150 pontos)
+            const finalCat2 = Math.min(rawCat2, MAX_CAT2);
+
+            // Pontuação Total
+            const totalScore = finalCat1 + finalCat2;
+
+            // Atualiza Interface de Totais
+            document.getElementById('score-cat1').innerText = finalCat1;
+            document.getElementById('score-cat2').innerText = finalCat2;
+            document.getElementById('score-total').innerText = totalScore;
+
+            // Atualiza Badges
+            document.getElementById('badge-cat1').innerText = `${finalCat1} / ${MAX_CAT1} pts`;
+            document.getElementById('badge-cat2').innerText = `${finalCat2} / ${MAX_CAT2} pts`;
+
+            // Atualiza Barras de Progresso
+            const percCat1 = Math.min((finalCat1 / MAX_CAT1) * 100, 100);
+            const percCat2 = Math.min((finalCat2 / MAX_CAT2) * 100, 100);
+            const percTotal = Math.min((totalScore / MAX_TOTAL) * 100, 100);
+
+            document.getElementById('bar-cat1').style.width = `${percCat1}%`;
+            document.getElementById('bar-cat2').style.width = `${percCat2}%`;
+            document.getElementById('bar-total').style.width = `${percTotal}%`;
+        }
+
+        function resetForm() {
+            document.getElementById('calc-form').reset();
+            calculateScore();
+        }
+
+        // Inicializa data para impressão
+        document.addEventListener("DOMContentLoaded", () => {
+            const dateStr = new Date().toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('print-date').innerText = dateStr;
+            calculateScore();
+        });
+    </script>
+</body>
+</html>
